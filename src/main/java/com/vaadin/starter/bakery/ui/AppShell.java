@@ -8,7 +8,7 @@ import com.vaadin.flow.theme.Theme;
 import static com.vaadin.starter.bakery.ui.utils.BakeryConst.VIEWPORT;
 
 @Viewport(VIEWPORT)
-@Theme("bakery")
+@Theme(value = "bakery", variant = "dark")
 @PWA(name = "Bakery App Starter", shortName = "###Bakery###",
 		startPath = "login",
 		backgroundColor = "#227aef", themeColor = "#227aef",

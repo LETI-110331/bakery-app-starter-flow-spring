@@ -1,16 +1,14 @@
 package com.vaadin.starter.bakery.ui;
 
-import static com.vaadin.starter.bakery.ui.utils.BakeryConst.TITLE_DASHBOARD;
-import static com.vaadin.starter.bakery.ui.utils.BakeryConst.TITLE_LOGOUT;
-import static com.vaadin.starter.bakery.ui.utils.BakeryConst.TITLE_PRODUCTS;
-import static com.vaadin.starter.bakery.ui.utils.BakeryConst.TITLE_STOREFRONT;
-import static com.vaadin.starter.bakery.ui.utils.BakeryConst.TITLE_USERS;
+import static com.vaadin.flow.i18n.I18NProvider.translate;
 
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasComponents;
@@ -18,33 +16,40 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.Notification.Position;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.TabVariant;
 import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.internal.LocaleUtil;
 import com.vaadin.flow.router.RouteConfiguration;
 import com.vaadin.flow.router.RouterLink;
+import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.VaadinServlet;
 import com.vaadin.flow.server.VaadinServletRequest;
+import com.vaadin.flow.server.Version;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
-import com.vaadin.starter.bakery.ui.utils.BakeryConst;
+import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.starter.bakery.ui.views.HasConfirmation;
 import com.vaadin.starter.bakery.ui.views.admin.products.ProductsView;
 import com.vaadin.starter.bakery.ui.views.admin.users.UsersView;
 import com.vaadin.starter.bakery.ui.views.dashboard.DashboardView;
 import com.vaadin.starter.bakery.ui.views.storefront.StorefrontView;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import jakarta.annotation.PostConstruct;
 
 public class MainView extends AppLayout {
 
 	@Autowired
 	private AccessAnnotationChecker accessChecker;
+	@Autowired
+	private AuthenticationContext authenticationContext;
 	private final ConfirmDialog confirmDialog = new ConfirmDialog();
 	private Tabs menu;
-	private static final String LOGOUT_SUCCESS_URL = "/" + BakeryConst.PAGE_ROOT;
 
 	@PostConstruct
 	public void init() {
@@ -53,7 +58,8 @@ public class MainView extends AppLayout {
 		confirmDialog.setCancelButtonTheme("raised tertiary");
 
 		this.setDrawerOpened(false);
-		Span appName = new Span("###Bakery###");
+		Span appName = new Span(translate("app.title"));
+		appName.addClassName("app-name");
 		appName.addClassName("hide-on-mobile");
 
 		menu = createMenuTabs();
@@ -66,11 +72,7 @@ public class MainView extends AppLayout {
 			
 			e.getSelectedTab().getId().ifPresent(id -> {
 				if ("logout-tab".equals(id)) {
-					UI.getCurrent().getPage().setLocation(LOGOUT_SUCCESS_URL);
-					SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
-					logoutHandler.logout(
-						VaadinServletRequest.getCurrent().getHttpServletRequest(), null,
-					null);
+					authenticationContext.logout();
 				}
 			});
 		});
@@ -86,6 +88,8 @@ public class MainView extends AppLayout {
 		getElement().addEventListener("search-blur", e -> {
 			getElement().getClassList().remove("hide-navbar");
 		});
+
+		showInfo();
 	}
 
 	@Override
@@ -117,15 +121,15 @@ public class MainView extends AppLayout {
 
 	private Tab[] getAvailableTabs() {
 		final List<Tab> tabs = new ArrayList<>(4);
-		tabs.add(createTab(VaadinIcon.EDIT, TITLE_STOREFRONT, StorefrontView.class));
-		tabs.add(createTab(VaadinIcon.CLOCK, TITLE_DASHBOARD, DashboardView.class));
+		tabs.add(createTab(VaadinIcon.EDIT, translate("storefront"), StorefrontView.class));
+		tabs.add(createTab(VaadinIcon.CLOCK, translate("dashboard"), DashboardView.class));
 		if (accessChecker.hasAccess(UsersView.class,
 				VaadinServletRequest.getCurrent().getHttpServletRequest())) {
-			tabs.add(createTab(VaadinIcon.USER, TITLE_USERS, UsersView.class));
+			tabs.add(createTab(VaadinIcon.USER, translate("users"), UsersView.class));
 		}
 		if (accessChecker.hasAccess(ProductsView.class,
 				VaadinServletRequest.getCurrent().getHttpServletRequest())) {
-			tabs.add(createTab(VaadinIcon.CALENDAR, TITLE_PRODUCTS, ProductsView.class));
+			tabs.add(createTab(VaadinIcon.CALENDAR, translate("products"), ProductsView.class));
 		}
 		final String contextPath = VaadinServlet.getCurrent().getServletContext().getContextPath();
 		final Tab logoutTab = createTab(createLogoutLink(contextPath));
@@ -133,6 +137,57 @@ public class MainView extends AppLayout {
 		tabs.add(logoutTab);
 		return tabs.toArray(new Tab[tabs.size()]);
 	}
+
+        private void showInfo() {
+
+            String version = "Platform: " + Version.getFullVersion();
+            String theme = version.startsWith("24.7") ? "" : "dark";
+            UI.getCurrent().getElement().setAttribute("theme", theme);
+
+            String showInfo = System.getenv("SHOW_INFO");
+            if ((showInfo == null || "false".equals(showInfo))
+                    && !ManagementFactory.getRuntimeMXBean().getInputArguments()
+                            .toString().contains("jwdp")) {
+                return;
+            }
+
+            List<String> items = new ArrayList<>(List.of(
+                    "com.vaadin.flow.server.VaadinService",
+                    "com.vaadin.controlcenter.starter.actuate.endpoint.VaadinActuatorEndpoint",
+                    "org.springframework.data.domain.Pageable"));
+            if (showInfo != null) {
+                for (String s : showInfo.split("[, ]+")) {
+                    if (s.contains(".")) {
+                        items.add(s);
+                    }
+                }
+            }
+
+            String header = "header: " + VaadinService.getCurrentRequest()
+                    .getHeader("Accept-Language");
+            String locales = "available: " + LocaleUtil.getI18NProvider().get()
+                    .getProvidedLocales().stream().map(l -> l.toString())
+                    .collect(Collectors.joining(","));
+            String locale = "selected: " + getLocale().toString();
+
+            VerticalLayout versions = new VerticalLayout(new Div(version), new Div(header),
+                    new Div(locales), new Div(locale));
+            versions.setSpacing(false);
+
+            for (String string : items) {
+                try {
+                    String jarPath = Class.forName(string).getProtectionDomain()
+                            .getCodeSource().getLocation().getPath();
+                    String s = jarPath
+                            .replaceFirst(".*/([^/]+)\\.jar(!?/.*)?", "$1");
+                    versions.add(new Div("· " + s));
+                } catch (Exception ignore) {
+                }
+            }
+            Notification n = new Notification(versions);
+            n.setPosition(Position.TOP_END);
+            n.open();
+        }
 
 	private static Tab createTab(VaadinIcon icon, String title, Class<? extends Component> viewClass) {
 		return createTab(populateLink(new RouterLink("", viewClass), icon, title));
@@ -146,7 +201,7 @@ public class MainView extends AppLayout {
 	}
 
 	private static Anchor createLogoutLink(String contextPath) {
-		final Anchor a = populateLink(new Anchor(), VaadinIcon.ARROW_RIGHT, TITLE_LOGOUT);
+		final Anchor a = populateLink(new Anchor(), VaadinIcon.ARROW_RIGHT, translate("logout"));
 		return a;
 	}
 

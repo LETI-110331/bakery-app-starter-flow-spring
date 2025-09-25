@@ -1,5 +1,7 @@
 package com.vaadin.starter.bakery.ui.views.admin.users;
 
+import static com.vaadin.flow.i18n.I18NProvider.translate;
+
 import jakarta.annotation.security.RolesAllowed;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +44,10 @@ public class UsersView extends AbstractBakeryCrudView<User> {
 
 	@Override
 	public void setupGrid(Grid<User> grid) {
-		grid.addColumn(User::getEmail).setWidth("270px").setHeader("Email").setFlexGrow(5);
-		grid.addColumn(u -> u.getFirstName() + " " + u.getLastName()).setHeader("Name").setWidth("200px").setFlexGrow(5);
-		grid.addColumn(User::getRole).setHeader("Role").setWidth("150px");
+		grid.addColumn(User::getEmail).setWidth("270px").setHeader(translate("email")).setFlexGrow(5);
+		grid.addColumn(u -> u.getFirstName() + " " + u.getLastName()).setHeader(translate("first.name"))
+				.setWidth("200px").setFlexGrow(5);
+		grid.addColumn(User::getRole).setHeader(translate("role")).setWidth("150px");
 	}
 
 	@Override
@@ -53,15 +56,15 @@ public class UsersView extends AbstractBakeryCrudView<User> {
 	}
 
 	private static BinderCrudEditor<User> createForm(PasswordEncoder passwordEncoder) {
-		EmailField email = new EmailField("Email (login)");
+		EmailField email = new EmailField(translate("email"));
 		email.getElement().setAttribute("colspan", "2");
-		TextField first = new TextField("First name");
-		TextField last = new TextField("Last name");
-		PasswordField password = new PasswordField("Password");
+		TextField first = new TextField(translate("first.name"));
+		TextField last = new TextField(translate("last.name"));
+		PasswordField password = new PasswordField(translate("password"));
 		password.getElement().setAttribute("colspan", "2");
 		ComboBox<String> role = new ComboBox<>();
 		role.getElement().setAttribute("colspan", "2");
-		role.setLabel("Role");
+		role.setLabel(translate("role"));
 
 		FormLayout form = new FormLayout(email, first, last, password, role);
 

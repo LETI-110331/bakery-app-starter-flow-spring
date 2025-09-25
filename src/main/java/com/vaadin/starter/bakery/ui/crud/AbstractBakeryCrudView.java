@@ -1,10 +1,11 @@
 package com.vaadin.starter.bakery.ui.crud;
 
+import java.util.function.Consumer;
+
 import com.vaadin.flow.component.crud.Crud;
 import com.vaadin.flow.component.crud.CrudEditor;
 import com.vaadin.flow.component.crud.CrudI18n;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
@@ -16,8 +17,6 @@ import com.vaadin.starter.bakery.backend.service.FilterableCrudService;
 import com.vaadin.starter.bakery.ui.components.SearchBar;
 import com.vaadin.starter.bakery.ui.utils.TemplateUtil;
 import com.vaadin.starter.bakery.ui.views.HasNotifications;
-
-import java.util.function.Consumer;
 
 public abstract class AbstractBakeryCrudView<E extends AbstractEntity> extends VerticalLayout
         implements HasUrlParameter<Long>, HasNotifications {
@@ -49,6 +48,7 @@ public abstract class AbstractBakeryCrudView<E extends AbstractEntity> extends V
         String entityName = EntityUtil.getName(beanType);
         crudI18n.setEditItem("Edit " + entityName);
         crudI18n.setEditLabel("Edit " + entityName);
+        crudI18n.setCancel("entityName");
         crudI18n.getConfirm().getCancel().setContent(String.format(DISCARD_MESSAGE, entityName));
         crudI18n.getConfirm().getDelete().setContent(String.format(DELETE_MESSAGE, entityName));
         crudI18n.setDeleteItem("Delete");

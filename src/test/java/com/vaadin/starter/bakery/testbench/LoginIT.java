@@ -13,7 +13,7 @@ public class LoginIT extends AbstractIT<LoginViewElement> {
 	@BrowserTest
 	public void loginWorks() {
 		LoginViewElement loginView = openLoginView();
-		Assertions.assertEquals("Email", loginView.getUsernameLabel());
+		Assertions.assertEquals("Email (login)", loginView.getUsernameLabel());
 		loginView.login("barista@vaadin.com", "barista");
 	}
 
