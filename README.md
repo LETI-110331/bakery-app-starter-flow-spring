@@ -1,3 +1,9 @@
+# Qualidade
+
+LETI-122608    Eduardo Real         
+LETI-122617    Tomás Cerveira        
+LETI-110331    Francisco Monteiro        
+LETI-136754    Marina Granatiero      
 
 # ⚠️ This starter is not recommended ⚠️
 
