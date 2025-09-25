@@ -19,16 +19,42 @@ import org.springframework.security.core.userdetails.User;
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import com.vaadin.starter.bakery.backend.data.Role;
 
-
-
 /**
- * Allows accessing all views without login for performance testing.
+ * {@code PerformanceTestSecurityConfiguration} é uma configuração de segurança personalizada
+ * para o perfil {@code performance-test}. 
+ * <p>
+ * Esta configuração permite o acesso a todas as views sem necessidade de login, 
+ * facilitando testes de desempenho do sistema sem autenticação.
+ * </p>
+ *
+ * <p>
+ * Características principais:
+ * <ul>
+ *   <li>Desabilita a proteção CSRF para permitir uso de HTML simples durante os testes.</li>
+ *   <li>Permite todas as requisições HTTP sem restrição de autenticação.</li>
+ *   <li>Define um usuário anônimo com todas as permissões de {@link Role} para simular privilégios elevados durante o teste.</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * <b>Importante:</b> Esta configuração deve ser utilizada apenas durante testes de performance.
+ * </p>
+ * 
+ * @author LETI-110331
+ * @see com.vaadin.flow.spring.security.VaadinWebSecurity
  */
 @Configuration
 @Order(1)
 @Profile("performance-test")
 public class PerformanceTestSecurityConfiguration extends VaadinWebSecurity {
 
+    /**
+     * Configura o {@link HttpSecurity} para desabilitar CSRF, permitir todas as requisições
+     * e definir um usuário anônimo com todas as permissões durante os testes de performance.
+     *
+     * @param http o objeto {@link HttpSecurity} a ser configurado
+     * @throws Exception em caso de erro de configuração
+     */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
