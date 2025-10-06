@@ -1,0 +1,11 @@
+name: Notificar reviewer
+
+on:
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Pull request aberto! Rever código."
