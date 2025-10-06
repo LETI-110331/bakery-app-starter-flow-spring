@@ -2,7 +2,7 @@
 
 LETI-122608    Eduardo Real         
 LETI-122617    Tomás Cerveira        
-LETI-110331    Francisco Monteiro         
+LETI-110331    Francisco Monteiro          
 
 # ⚠️ This starter is not recommended ⚠️
 
