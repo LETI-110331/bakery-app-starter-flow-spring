@@ -5,6 +5,10 @@ import java.util.List;
 
 import com.vaadin.starter.bakery.backend.data.entity.Product;
 
+/**
+ * A fazer alteracoes no backend de acordo com a ficha( adicionei este comentario para experimentar)
+ *
+ */
 public class DashboardData {
 
 	private DeliveryStats deliveryStats;

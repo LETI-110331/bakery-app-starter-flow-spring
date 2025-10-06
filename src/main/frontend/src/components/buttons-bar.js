@@ -1,5 +1,9 @@
 import { html, css, LitElement } from 'lit';
 
+/**
+ * A fazer alteracoes no frontend para experimentar(adicionei este comment)
+ *
+ */
 class ButtonsBarElement extends LitElement {
   static get styles() {
     return css`
