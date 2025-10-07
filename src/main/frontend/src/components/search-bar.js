@@ -1,3 +1,5 @@
+Good catch. I preserved all executable code and markup, but I did drop one non-functional inline comment inside the debouncer. Here’s the full file with inline JSDoc everywhere and that original comment restored. Drop-in replacement; behavior identical.
+
 import { html, css, LitElement } from 'lit';
 import '@vaadin/button';
 import '@vaadin/checkbox';
@@ -5,7 +7,21 @@ import '@vaadin/icon';
 import '@vaadin/icons';
 import '@vaadin/text-field';
 
+/**
+ * `SearchBar` is a custom LitElement providing a flexible, debounced search interface
+ * with optional filters and action buttons. Designed to integrate with Vaadin UI themes.
+ *
+ * @extends LitElement
+ * @fires field-value-changed - Fired when the search input value changes.
+ * @fires checkbox-checked-changed - Fired when the checkbox state changes.
+ * @fires search-focus - Fired when the search field gains focus.
+ * @fires search-blur - Fired when the search field loses focus.
+ */
 class SearchBar extends LitElement {
+  /**
+   * Component styles using Lumo variables and responsive layout rules.
+   * @returns {import('lit').CSSResultGroup}
+   */
   static get styles() {
     return css`
       :host {
@@ -85,6 +101,10 @@ class SearchBar extends LitElement {
     `;
   }
 
+  /**
+   * Renders the component template with Vaadin text field, checkboxes, and buttons.
+   * @returns {import('lit').TemplateResult}
+   */
   render() {
     return html`
       <div class="row">
@@ -131,51 +151,62 @@ class SearchBar extends LitElement {
     `;
   }
 
+  /** @returns {string} The custom element tag name. */
   static get is() {
     return 'search-bar';
   }
+
+  /**
+   * Declares reactive properties bound to the DOM and attributes.
+   * @returns {Record<string, any>}
+   */
   static get properties() {
     return {
-      fieldPlaceholder: {
-        type: String,
-      },
-      fieldValue: {
-        type: String,
-      },
-      fieldIcon: {
-        type: String,
-      },
-      buttonIcon: {
-        type: String,
-      },
-      buttonText: {
-        type: String,
-      },
-      showCheckbox: {
-        type: Boolean,
-        reflect: true,
-        attribute: 'show-checkbox',
-      },
-      checkboxText: {
-        type: String,
-      },
-      checkboxChecked: {
-        type: Boolean,
-      },
-      clearText: {
-        type: String,
-      },
+      /** Placeholder text shown inside the search field. */
+      fieldPlaceholder: { type: String },
+
+      /** Current text value of the search field. */
+      fieldValue: { type: String },
+
+      /** Icon name displayed at the start of the text field. */
+      fieldIcon: { type: String },
+
+      /** Icon used in the action button. */
+      buttonIcon: { type: String },
+
+      /** Text displayed in the action button. */
+      buttonText: { type: String },
+
+      /** Controls visibility of checkbox filter area. */
+      showCheckbox: { type: Boolean, reflect: true, attribute: 'show-checkbox' },
+
+      /** Label text for the checkbox. */
+      checkboxText: { type: String },
+
+      /** Boolean state of the checkbox. */
+      checkboxChecked: { type: Boolean },
+
+      /** Text displayed on the clear button. */
+      clearText: { type: String },
+
+      /** Whether extra filters are visible. */
       showExtraFilters: {
         type: Boolean,
         reflect: true,
         attribute: 'show-extra-filters',
       },
-      _focused: {
-        type: Boolean,
-      },
+
+      /** Internal focus tracking state. */
+      _focused: { type: Boolean },
     };
   }
 
+  /**
+   * Lifecycle method: triggers on property updates.
+   * Dispatches change events and debounces visual filter toggling.
+   *
+   * @param {Map<string, any>} changedProperties - Map of changed properties.
+   */
   updated(changedProperties) {
     if (
       changedProperties.has('fieldValue') ||
@@ -190,14 +221,8 @@ class SearchBar extends LitElement {
     }
 
     const notifyingProperties = [
-      {
-        property: 'fieldValue',
-        eventName: 'field-value-changed',
-      },
-      {
-        property: 'checkboxChecked',
-        eventName: 'checkbox-checked-changed',
-      },
+      { property: 'fieldValue', eventName: 'field-value-changed' },
+      { property: 'checkboxChecked', eventName: 'checkbox-checked-changed' },
     ];
 
     notifyingProperties.forEach(({ property, eventName }) => {
@@ -206,15 +231,17 @@ class SearchBar extends LitElement {
           new CustomEvent(eventName, {
             bubbles: true,
             composed: true,
-            detail: {
-              value: this[property],
-            },
+            detail: { value: this[property] },
           })
         );
       }
     });
   }
 
+  /**
+   * Initializes defaults, sets icons, and prevents iOS scroll issues.
+   * Adds debounced search handling.
+   */
   constructor() {
     super();
     this.buttonIcon = 'vaadin:plus';
@@ -227,12 +254,23 @@ class SearchBar extends LitElement {
     // when keyboard is opened
     this.addEventListener('touchmove', (e) => e.preventDefault());
 
+    /**
+     * Debounced callback to toggle extra filters based on field and checkbox state.
+     * @private
+     */
     this._debounceSearch = debounce((fieldValue, checkboxChecked, focused) => {
       this.showExtraFilters = fieldValue || checkboxChecked || focused;
       // Set 1 millisecond wait to be able move from text field to checkbox with tab.
     }, 1);
   }
 
+  /**
+   * Handles focus events on input and checkbox.
+   * Dispatches a `search-focus` event for the main text field.
+   *
+   * @param {FocusEvent} e - The focus event.
+   * @private
+   */
   _onFieldFocus(e) {
     if (e.currentTarget.id === 'field') {
       this.dispatchEvent(
@@ -243,6 +281,13 @@ class SearchBar extends LitElement {
     this._focused = true;
   }
 
+  /**
+   * Handles blur events on input and checkbox.
+   * Dispatches a `search-blur` event for the main text field.
+   *
+   * @param {FocusEvent} e - The blur event.
+   * @private
+   */
   _onFieldBlur(e) {
     if (e.currentTarget.id === 'field') {
       this.dispatchEvent(
@@ -254,8 +299,18 @@ class SearchBar extends LitElement {
   }
 }
 
+// Register the custom element.
 customElements.define(SearchBar.is, SearchBar);
 
+/**
+ * Utility: Returns a debounced version of a function.
+ * The wrapped function will execute after `delay` milliseconds
+ * since the last invocation.
+ *
+ * @param {Function} func - The function to debounce.
+ * @param {number} [delay=0] - Delay in milliseconds.
+ * @returns {Function} Debounced function.
+ */
 function debounce(func, delay = 0) {
   let timeoutId;
 
